@@ -1,0 +1,113 @@
+---
+title: "A8_Metabarcoding_Assignment"
+author: "Chenyang Wu"
+date: "2022/3/16"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Project Info
+#### **GitHub user name**: Wuris
+#### **Date**: 2022/3/16
+#### **GitHub Link**: https://github.com/Wuris/Biol432_A8.git
+
+### Biological questions:
+#### 1. What effect (if any) does garlic mustard have on the plant community?
+#### 2. What has a stronger effect on plant communities: the presence/absence of garlic mustard (in/out) or sampling population?
+
+```{r message=FALSE, warning=FALSE}
+# Load the packages we need
+library(dplyr)
+library(vegan)
+library(reshape2)
+library(ggplot2)
+library(ape)
+library(ggtree)
+```
+
+```{r}
+# Load the dataset and check the structure
+A8Data <- read.csv("./Data/FloristicSurvey.csv")
+str(A8Data)
+# We need Population column be treat as factor
+A8Data$Population <- as.character(A8Data$Population)
+```
+
+### Subset the dataset
+```{r}
+# Create a new data set with just the 34 different species present.
+A8SpecData <- A8Data %>%
+  select(-c(Quadrate:Sillique))
+row.names(A8SpecData) <- A8Data$Quadrate
+```
+
+### Distance matrix
+```{r}
+# Use package "vegan", "reshape2" and "ggplot2" here
+# Bray-Curtis dissimilarity method
+SpecDist <- vegdist(A8SpecData, method = "bray", binary = F)
+SpecDistMat <- as.matrix(SpecDist)
+SpecPDat <- melt(SpecDistMat)
+
+# Visualize the distance matrix
+ggplot(data = SpecPDat, aes(x = Var1, y = Var2, fill = value)) + 
+  geom_tile() + 
+  scale_fill_gradientn(colours = c("white", "blue", "green", "red")) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+
+#### Fig. 1 Distance map for each Quadrate used Bray-Curtis dissimilarity method.
+
+
+
+
+
+
+### Tree Building
+```{r}
+# Use "ape" and "ggtree" package here
+SpecTree <- nj(SpecDist)
+ggtree(SpecTree, layout = "rectangular") %<+% A8Data + 
+  geom_tiplab(aes(colour = Population)) + 
+  theme(legend.position = "right")
+```
+
+
+```{r}
+ggtree(SpecTree, layout = "rectangular") %<+% A8Data + 
+  geom_tiplab(aes(colour = Location)) + 
+  theme(legend.position = "right")
+```
+
+
+### Non-Metric Multidimensional Scaling (NMDS)
+```{r}
+set.seed(1117)
+NMDSdat <- metaMDS(SpecDist, k = 2)
+
+A8PDat <- data.frame(NMDS1 = NMDSdat$points[,1], 
+                     NMDS2 = NMDSdat$points[,2], 
+                     Quadrate = row.names(A8SpecData))
+
+A8PDat <- merge(A8PDat, A8Data, by = "Quadrate", all.x = T, all.y = F)
+
+qplot(x = NMDS1, y = NMDS2, colour = Population, shape = Location, alpha = I(0.6), data = A8PDat) + 
+  theme_bw()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
