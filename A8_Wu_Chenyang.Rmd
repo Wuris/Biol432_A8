@@ -14,9 +14,16 @@ knitr::opts_chunk$set(echo = TRUE)
 #### **Date**: 2022/3/16
 #### **GitHub Link**: https://github.com/Wuris/Biol432_A8.git
 
+### Introduction
+#### Garlic mustard was introduced to North America by European settlers in the 1800s for culinary and medicinal purposes. It is toxic or unpalatable to many native herbivores as well as some native Lepidoptera. Young first-year garlic mustard contains up to 100 ppm of cyanide, a level that is toxic to many vertebrates (*Cipollini and Gruner, 2007*). Since being brought to the United States by settlers, it has naturalized and expanded its range to include much of the Northeast and Midwest, as well as southeastern Canada. It is therefore necessary to conduct a study of this plant, focusing on its effects on the surrounding plant communities.
+
+
 ### Biological questions:
 #### 1. What effect (if any) does garlic mustard have on the plant community?
 #### 2. What has a stronger effect on plant communities: the presence/absence of garlic mustard (in/out) or sampling population?
+
+### Method
+#### To test these questions, we will make a distance map for all quadrates with 34 different species data and make a "phylogeny" tree for all the quadrates to see whether the sites within same population/location are close connect to each other or not. And we will also make a NMDS plot to check how far between each sites.
 
 ```{r message=FALSE, warning=FALSE}
 # Load the packages we need
@@ -29,9 +36,10 @@ library(ggtree)
 ```
 
 ```{r}
-# Load the dataset and check the structure
+# Load the data set and check its structure
 A8Data <- read.csv("./Data/FloristicSurvey.csv")
 str(A8Data)
+
 # We need Population column be treat as factor
 A8Data$Population <- as.character(A8Data$Population)
 ```
@@ -59,29 +67,24 @@ ggplot(data = SpecPDat, aes(x = Var1, y = Var2, fill = value)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 ```
 
-#### Fig. 1 Distance map for each Quadrate used Bray-Curtis dissimilarity method.
+#### Fig.1 Distance map for each Quadrate used Bray-Curtis dissimilarity method.
 
-
-
-
+#### From this figure we could found that there are higher distance gap between different populations and with different location (o and i) it also have different distance value in between. And we could also easily found that there are three sites are far away from others (13o1, 13o2, 13o3). According to all of these, we could say that garlic mustard do have effect on the plant community.
 
 
 ### Tree Building
-```{r}
+```{r fig.height=8, fig.width=8, warning=FALSE}
 # Use "ape" and "ggtree" package here
 SpecTree <- nj(SpecDist)
 ggtree(SpecTree, layout = "rectangular") %<+% A8Data + 
   geom_tiplab(aes(colour = Population)) + 
+  geom_label(aes(x = branch, label = Location), fill = 'yellow') + 
   theme(legend.position = "right")
 ```
 
+#### Fig.2 The tree of each Quadrates labeled with different locations and names indicated by different colors showing the populations. (o means there are no garlic mustard within the site, i means there are garlic mustard within the site.)
 
-```{r}
-ggtree(SpecTree, layout = "rectangular") %<+% A8Data + 
-  geom_tiplab(aes(colour = Location)) + 
-  theme(legend.position = "right")
-```
-
+#### From this tree graph, we could see that all sites in same population group are close to the sites from same population, except population 3 and popultion 14. And all sites within different locations are partly convergent to each other. This shows that both population and location have effect on the plant community.
 
 ### Non-Metric Multidimensional Scaling (NMDS)
 ```{r}
@@ -98,16 +101,11 @@ qplot(x = NMDS1, y = NMDS2, colour = Population, shape = Location, alpha = I(0.6
   theme_bw()
 ```
 
+#### Fig.3 Two dementional NMDS plot with different colors showing the population groups and different shapes showing the location groups.
+
+#### From this figure we can see that the points with different colors are clustered in different areas without much overlap. And the points with different shapes, on the other hand, do not show a clear group aggregation, they overlaped to each other. Thus, we could say that sampling population has a stronger effect on plant communities.
 
 
 
-
-
-
-
-
-
-
-
-
-
+### Reference
+#### 1. Cipollini, D., Gruner, B. Cyanide in the Chemical Arsenal of Garlic Mustard, Alliaria petiolata . J Chem Ecol 33, 85–94 (2007). https://doi.org/10.1007/s10886-006-9205-x
